@@ -11,7 +11,6 @@ function Home(props) {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  
   useEffect(() => {
     setLoading(true);
     axios.get("http://localhost:5000/api/product/upcoming")
@@ -43,7 +42,7 @@ function Home(props) {
       const response = await axios.get(`http://localhost:5000/api/product/search/${category}/${searchTerm}`);
       const searchResults = response.data;
       if (!searchResults || searchResults.length === 0) {
-        props.showAlert("No results found", "warning");
+        props.showAlert("No results found","message");
       } else {
         navigate("/search-results", { state: { searchResults } });
       }
@@ -66,54 +65,66 @@ function Home(props) {
 
   return (
     <>
-      <div className="container d-flex justify-content-center align-items-center" style={{ fontFamily: "TimesNewRoman", color: "black", marginTop: "120px"}}>
-        <ul className="text-center">
-          <li className="list-group-item" style={{ fontSize: "40px" }}>Welcome to</li>
-          <li className="list-group-item" style={{ fontSize: "80px", fontWeight: "bold" }}>ONLINE AUCTION SYSTEM</li>
-          <li className="list-group-item" style={{ fontSize: "40px" }}>This is your chance to own a piece of history</li>
+    <div className="bg:gray-500">
+      <div className="container mx-auto flex justify-center items-center font-serif text-black mt-40">
+        <ul className="text-center space-y-7">
+          <li className="list-none text-4xl">Welcome to</li>
+          <li className="list-none text-6xl">BIDMASTER</li>
+          <li className="list-none font-bold text-7xl">ONLINE AUCTION SYSTEM</li>
+          <li className="list-none text-4xl">This is your chance to own a piece of history</li>
         </ul>
       </div>
 
-      <div className="container">
-        <div className="row justify-content-center mt-5">
-          <div className="col-md-8">
-            <form onSubmit={handleSearch} className="d-flex">
-              <select className="form-select me-2" aria-label="Category" value={category} onChange={(e) => setCategory(e.target.value)} required>
+      <div className="container mx-auto mt-24">
+        <div className="flex justify-center mt-5">
+          <div className="w-full md:w-8/12">
+            <form onSubmit={handleSearch} className="flex flex-col md:flex-row">
+              <select className="form-select mb-2 md:mb-0 md:mr-2 w-full md:w-auto px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" aria-label="Category" value={category} onChange={(e) => setCategory(e.target.value)} required>
                 <option value="">Select Category</option>
                 <option value="electronics">Electronics</option>
                 <option value="clothing">Clothing</option>
                 <option value="books">Books</option>
               </select>
-              <input className="form-control me-2" type="search" placeholder="Product Name" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} required/>
-              <button className="btn btn-outline-success" type="submit">Search</button>
+              <input className="form-control mb-2 md:mb-0 md:mr-2 w-full px-3 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" type="search" placeholder="Product Name" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} required/>
+              <button className="btn btn-outline-success bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-300" type="submit">Search</button>
             </form>
           </div>
         </div>
       </div>
 
-      <div className="container" style={{ marginTop: '100px' }}>
-        <h1 className="container d-flex justify-content-center align-items-center">UPCOMING AUCTIONS</h1>
+      <div className="container mx-auto mt-24">
+        <h1 className="text-center text-4xl font-bold mb-8">UPCOMING AUCTIONS</h1>
         {loading ? (
           <div className="text-center">Loading...</div>
         ) : (
-          <div className="product-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px', padding: '20px' }}>
+          <div className="container mx-auto py-10 mt-20 px-6 sm:px-8 lg:px-12"> 
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
-              <div key={product._id} className="card">
+              <div key={product._id} className="card border border-gray-300 rounded-lg p-4 shadow-lg bg-white">
+                {product.image && (
+                            <img
+                                src={`http://localhost:5000/productImages/${product.image}`}
+                                alt={product.name}
+                                className="h-48 w-full object-cover mb-4 rounded-lg"
+                            />
+                        )}
                 <div className="card-body">
-                  <h5 className="card-title">{product.name}</h5>
-                  <p className="card-text">Category: {product.category}</p>
-                  <p className="card-text">Description: {product.description}</p>
-                  <p className="card-text">Starting Bid Price: ${product.startingbidprice}</p>
-                  <p className="card-text">Current Bid Price: ${product.currentbidprice}</p>
-                  <p className="card-text">End Date: {product.endDate.toLocaleString()}</p>
-                  <p className="card-text">Condition: {product.condition}</p>
-                  <p className="card-text">Status: {product.status}</p>
-                  <button className="btn btn-primary" onClick={() => handlePlaceBid(product)}>Place Bid</button>
+                  <h5 className="text-xl font-semibold mb-2">{product.name}</h5>
+                  <p className="text-gray-700 mb-2">Category: {product.category}</p>
+                  <p className="text-gray-700 mb-2">Description: {product.description}</p>
+                  <p className="text-gray-700 mb-2">Starting Bid Price: ${product.startingbidprice}</p>
+                  <p className="text-gray-700 mb-2">Current Bid Price: ${product.currentbidprice}</p>
+                  <p className="text-gray-700 mb-2">End Date: {product.endDate.toLocaleString()}</p>
+                  <p className="text-gray-700 mb-2">Condition: {product.condition}</p>
+                  <p className="text-gray-700 mb-4">Status: {product.status}</p>
+                  <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300" onClick={() => handlePlaceBid(product)}>Place Bid</button>
                 </div>
               </div>
             ))}
+             </div>
           </div>
         )}
+      </div>
       </div>
     </>
   );

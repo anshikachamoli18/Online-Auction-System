@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './Components/Navbar';
 import Home from './Components/Home';
 import About from './Components/About';
@@ -17,48 +17,45 @@ import UserProducts from './Components/UserProducts';
 import SearchResults from './Components/SearchResults';
 import LoginForPlacingBid from './Components/LoginForPlacingBid';
 import ProductDetailsForBid from './Components/ProductDetailsForBid';
+import Footer from './Components/Footer';
 
 function App() {
-  const [alert,setAlert]=useState(null)
-  const showAlert=(message,type)=>
-  {
+  const [alert, setAlert] = useState(null);
+
+  const showAlert = (message, type) => {
     setAlert({
       msg: message,
-      type: type
-    })
+      type: type,
+    });
     setTimeout(() => {
       setAlert(null);
     }, 1500);
-  }
+  };
+
   return (
     <>
-    <style>{`
-          body {
-            background-color: #b0eaf5;
-            font-family: "Times New Roman";
-          }
-        `}</style>
-    <Router>
-      <AuthProvider>
-      <Navbar/>
-      <Alert alert={alert}/>
-        <div className="container">
-          <Routes>
-          <Route exact path="/" element={<Home showAlert={showAlert}/>}/>
-          <Route exact path="/about" element={<About/>}/>
-          <Route exact path="/works" element={<HowItWorks/>}/>
-          <Route exact path="/register" element={<Register showAlert={showAlert}/>}/>
-          <Route exact path="/login" element={<Login showAlert={showAlert}/>}/>
-          <Route exact path="/contact" element={<Contact />}/>
-          <Route exact path="/profile" element={<Profile showAlert={showAlert} />}/>
-          <Route exact path="/edituser" element={<EditUser showAlert={showAlert}/>}/>
-          <Route exact path="/postproduct" element={<Postproduct showAlert={showAlert}/>}/>
-          <Route exact path="/viewproduct" element={<UserProducts />}/>
-          <Route exact path="/search-results" element={<SearchResults showAlert={showAlert}/>}/>
-          <Route exact path="/login-for-placing-bid" element={<LoginForPlacingBid showAlert={showAlert}/>}/>
-          <Route exact path="/product-details-for-bid" element={<ProductDetailsForBid showAlert={showAlert}/>}/>
-          </Routes>
-        </div>
+      <Router>
+        <AuthProvider>
+          <Navbar />
+          <Alert alert={alert} />
+          <div className="min-h-screen flex flex-col font-times">
+            <Routes>
+              <Route exact path="/" element={<Home showAlert={showAlert} />} />
+              <Route exact path="/about" element={<About />} />
+              <Route exact path="/works" element={<HowItWorks />} />
+              <Route exact path="/register" element={<Register showAlert={showAlert} />} />
+              <Route exact path="/login" element={<Login showAlert={showAlert} />} />
+              <Route exact path="/contact" element={<Contact />} />
+              <Route exact path="/profile" element={<Profile showAlert={showAlert} />} />
+              <Route exact path="/edituser" element={<EditUser showAlert={showAlert} />} />
+              <Route exact path="/postproduct" element={<Postproduct showAlert={showAlert} />} />
+              <Route exact path="/viewproduct" element={<UserProducts />} />
+              <Route exact path="/search-results" element={<SearchResults showAlert={showAlert} />} />
+              <Route exact path="/login-for-placing-bid" element={<LoginForPlacingBid showAlert={showAlert} />} />
+              <Route exact path="/product-details-for-bid" element={<ProductDetailsForBid showAlert={showAlert} />} />
+            </Routes>
+            <Footer />
+          </div>
         </AuthProvider>
       </Router>
     </>

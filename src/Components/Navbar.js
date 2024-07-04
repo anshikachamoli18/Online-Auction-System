@@ -5,99 +5,74 @@ import { useAuth } from "../Context/AuthContext";
 const NavBar = () => {
   const { isAuthenticated } = useAuth();
 
-  const navBarStyle = {
-    width: "100%",
-    color: "white",
-    fontFamily: "Times New Roman",
-    fontWeight: "bold",
-    backgroundColor: "#077086",
-  };
-
-  const navBrandStyle = {
-    color: "#d58717",
-    fontFamily: "Times New Roman",
-    fontWeight: "bold",
-    fontSize: "2rem",  // Increased font size for the brand
-    marginLeft: "1rem",
-  };
-
-  const navLinkStyle = {
-    color: "white",
-    fontFamily: "Times New Roman",
-    fontWeight: "bold",
-    fontSize: "30px",  // Increased font size for links
-    marginLeft: "1rem",
-    transition: "color 0.3s ease",  // Add transition for hover effect
-  };
-
-  const navLinkHoverStyle = {
-    color: "#d58717",
-  };
-
-  const highlightLinkStyle = {
-    color: "#d58717",
-  };
+  const navBarStyle = "bg-blue-900 text-white shadow-md z-50";
+  const navBrandStyle = "text-yellow-500 font-bold text-4xl"; // Increased text size here
+  const navLinkStyle = "text-white font-bold text-3xl hover:text-yellow-500"; // Increased text size here
+  //const navLinkHighlightStyle = "text-yellow-500";
+  const navLinkHoverStyle = "hover:text-yellow-500";
+  const highlightLinkStyle = "text-yellow-500";
 
   return (
-    <nav className="navbar fixed-top navbar-expand-lg navbar-dark" style={navBarStyle}>
-      <div className="container-fluid">
-        <Link className="navbar-brand" to="/" style={navBrandStyle}>
-          Bidding
+    <nav className={`fixed top-0 left-0 w-full ${navBarStyle} shadow-md z-50`}>
+      <div className="container mx-auto flex justify-between items-center py-4 px-4 md:px-8">
+        <Link className={navBrandStyle} to="/">
+          Bidding System
         </Link>
         <button
-          className="navbar-toggler"
+          className="text-white md:hidden focus:outline-none"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
+          onClick={() => {
+            document.getElementById("navbar-menu").classList.toggle("hidden");
+          }}
         >
-          <span className="navbar-toggler-icon"></span>
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            ></path>
+          </svg>
         </button>
-        <div className="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
+        <div
+          className="hidden md:flex md:items-center md:space-x-4"
+          id="navbar-menu"
+        >
+          <ul className="flex flex-col md:flex-row md:space-x-8">
             <li className="nav-item">
               <Link
-                className="nav-link active"
-                aria-current="page"
+                className={`${navLinkStyle} ${navLinkHoverStyle}`}
                 to="/"
-                style={navLinkStyle}
-                onMouseOver={(e) => e.target.style.color = navLinkHoverStyle.color}
-                onMouseOut={(e) => e.target.style.color = navLinkStyle.color}
               >
                 Home
               </Link>
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`${navLinkStyle} ${navLinkHoverStyle}`}
                 to="/works"
-                style={navLinkStyle}
-                onMouseOver={(e) => e.target.style.color = navLinkHoverStyle.color}
-                onMouseOut={(e) => e.target.style.color = navLinkStyle.color}
               >
                 How it works
               </Link>
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`${navLinkStyle} ${navLinkHoverStyle}`}
                 to="/about"
-                style={navLinkStyle}
-                onMouseOver={(e) => e.target.style.color = navLinkHoverStyle.color}
-                onMouseOut={(e) => e.target.style.color = navLinkStyle.color}
               >
                 About
               </Link>
             </li>
             <li className="nav-item">
               <Link
-                className="nav-link"
+                className={`${navLinkStyle} ${navLinkHoverStyle}`}
                 to="/contact"
-                style={navLinkStyle}
-                onMouseOver={(e) => e.target.style.color = navLinkHoverStyle.color}
-                onMouseOut={(e) => e.target.style.color = navLinkStyle.color}
               >
                 Contact us
               </Link>
@@ -106,22 +81,16 @@ const NavBar = () => {
               <>
                 <li className="nav-item">
                   <Link
-                    className="nav-link"
+                    className={`${navLinkStyle} ${highlightLinkStyle} ${navLinkHoverStyle}`}
                     to="/register"
-                    style={{ ...navLinkStyle, ...highlightLinkStyle }}
-                    onMouseOver={(e) => e.target.style.color = navLinkHoverStyle.color}
-                    onMouseOut={(e) => e.target.style.color = highlightLinkStyle.color}
                   >
                     Register
                   </Link>
                 </li>
                 <li className="nav-item">
                   <Link
-                    className="nav-link"
+                    className={`${navLinkStyle} ${highlightLinkStyle} ${navLinkHoverStyle}`}
                     to="/login"
-                    style={{ ...navLinkStyle, ...highlightLinkStyle }}
-                    onMouseOver={(e) => e.target.style.color = navLinkHoverStyle.color}
-                    onMouseOut={(e) => e.target.style.color = highlightLinkStyle.color}
                   >
                     Login
                   </Link>
@@ -130,11 +99,8 @@ const NavBar = () => {
             ) : (
               <li className="nav-item">
                 <Link
-                  className="nav-link"
+                  className={`${navLinkStyle} ${highlightLinkStyle} ${navLinkHoverStyle}`}
                   to="/profile"
-                  style={{ ...navLinkStyle, ...highlightLinkStyle }}
-                  onMouseOver={(e) => e.target.style.color = navLinkHoverStyle.color}
-                  onMouseOut={(e) => e.target.style.color = highlightLinkStyle.color}
                 >
                   My Profile
                 </Link>

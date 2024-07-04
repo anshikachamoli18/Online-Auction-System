@@ -69,55 +69,61 @@ function LoginForPlacingBid(props) {
   };
 
   return (
-    <div className="container" style={{ marginTop: "120px", width: "500px", background: "lightblue", padding: "10px", borderRadius: "10px" }}>
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label">
-            Email address
-          </label>
-          <input
-            type="email"
-            className="form-control"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password
-          </label>
-          <input
-            type="password"
-            className="form-control"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        {error && <div className="alert alert-danger">{error}</div>}
-        {otpSent && (
-          <div className="mb-3">
-            <label htmlFor="otp" className="form-label">
-              Enter OTP
+    <div className="flex items-center justify-center min-h-screen bg-blue-300">
+      <div className="w-full max-w-md bg-blue-100 p-8 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-gray-700">
+              Email address
             </label>
             <input
-              type="text"
-              className="form-control"
-              id="otp"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
+              type="email"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
-        )}
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
+          <div>
+            <label htmlFor="password" className="block text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <div className="text-red-500 text-sm">{error}</div>}
+          {otpSent && (
+            <div>
+              <label htmlFor="otp" className="block text-gray-700">
+                Enter OTP
+              </label>
+              <input
+                type="text"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+                id="otp"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                required
+              />
+            </div>
+          )}
+          <button
+            type="submit"
+            className={`w-full py-2 px-4 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring focus:border-blue-300 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

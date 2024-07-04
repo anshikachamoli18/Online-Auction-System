@@ -7,18 +7,23 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fetchUser = require('../middleware/fetchUser');
 const nodemailer = require('nodemailer');
+const path = require('path');
+const fs = require('fs');
 
+// Multer setup for disk storage
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'public/uploads');
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
+  destination: (req, file, cb) => {
+    cb(null, 'D:/onlineauctionsystem/uploads'); // Ensure path is absolute
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
 });
+
 const upload = multer({ storage: storage });
 
-const OTP_SECRET = "some_random_secret"; // Ideally, this should be stored securely
+const JWT_SECRET = 'thisisavery';
+const OTP_SECRET = 'some_random_secret';
 
 let otps = {}; // In-memory store for OTPs, replace with a proper store in production
 
@@ -34,10 +39,10 @@ router.post('/sendotp', [
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'anshikachamoli2004@gmail.com',
-        pass: 'ulot jvqp xdoo lqti'
+      user: 'anshikachamoli2004@gmail.com',
+      pass: 'ulot jvqp xdoo lqti'
     }
-});
+  });
 
   let mailOptions = {
     from: 'anshikachamoli2004@gmail.com',
@@ -69,153 +74,174 @@ router.post('/verifyotp', [
   }
 });
 
-const JWT_SECRET = "thisisavery";
-
-router.post('/createuser', [body('name', 'Enter a valid name').isLength({ min: 3 }), body('email', 'Enter a valid email').isEmail(),
-body('contactnumber').isLength({ min: 10 }), body('password').isLength({ min: 5 })], async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        let success = false;
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success, errors: errors.array() });
-        };
-        let user = await User.findOne({ email: req.body.email });
-        if (user) {
-            return res.status(400).json({ success, error: "Sorry, a user with this email already exists" });
-        }
-        const salt = await bcrypt.genSalt(10);
-        const secPass = await bcrypt.hash(req.body.password, salt);
-        user = await User.create({
-            name: req.body.name,
-            email: req.body.email,
-            contactnumber: req.body.contactnumber,
-            password: secPass,
-            uniqueid: req.body.uniqueid,
-            productUploadedForSale:0,
-            productBought:0,
-            image: null
-        });
-        const data = {
-            user: {
-                id: user.id
-            }
-        };
-        const authToken = jwt.sign(data, JWT_SECRET);
-        success = true;
-        res.json({ success, authToken, uniqueid: user.uniqueid });
-    } catch (error) {
-        console.error(error.message);
-        res.status(500).send("Internal Server Error");
+// Create User
+router.post('/createuser', [
+  body('name', 'Enter a valid name').isLength({ min: 3 }),
+  body('email', 'Enter a valid email').isEmail(),
+  body('contactnumber').isLength({ min: 10 }),
+  body('password').isLength({ min: 5 })
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    let success = false;
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success, errors: errors.array() });
     }
+    let user = await User.findOne({ email: req.body.email });
+    if (user) {
+      return res.status(400).json({ success, error: "Sorry, a user with this email already exists" });
+    }
+    const salt = await bcrypt.genSalt(10);
+    const secPass = await bcrypt.hash(req.body.password, salt);
+    user = await User.create({
+      name: req.body.name,
+      email: req.body.email,
+      contactnumber: req.body.contactnumber,
+      password: secPass,
+      uniqueid: req.body.uniqueid,
+      productUploadedForSale: 0,
+      productBought: 0,
+      //filename: null,
+      //path: null,
+      image: null
+    });
+    const data = {
+      user: {
+        id: user.id
+      }
+    };
+    const authToken = jwt.sign(data, JWT_SECRET);
+    success = true;
+    res.json({ success, authToken, uniqueid: user.uniqueid });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
-router.post('/login', [body('email', 'Enter a valid email').isEmail(), body('password', 'Password cannot be blank').exists()], async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        let success = false;
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        };
-        const { email, password } = req.body;
-        let user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ error: "Please try to login with correct credentials" });
-        }
-        const passwordCompare = await bcrypt.compare(password, user.password);
-        if (!passwordCompare) {
-            return res.status(400).json({ success, error: "Please try to login with correct credentials" });
-        }
-        const data = {
-            user: {
-                id: user.id,
-                uniqueid: user.uniqueid
-            }
-        };
-        const authToken = jwt.sign(data, JWT_SECRET);
-        success = true;
-        res.json({ success, authToken , uniqueid: user.uniqueid});
-    } catch (error) {
-        console.error(error.message);
-        res.status(500).send("Internal Server Error");
+// User Login
+router.post('/login', [
+  body('email', 'Enter a valid email').isEmail(),
+  body('password', 'Password cannot be blank').exists()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    let success = false;
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
+    const { email, password } = req.body;
+    let user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ error: "Please try to login with correct credentials" });
+    }
+    const passwordCompare = await bcrypt.compare(password, user.password);
+    if (!passwordCompare) {
+      return res.status(400).json({ success, error: "Please try to login with correct credentials" });
+    }
+    const data = {
+      user: {
+        id: user.id,
+        uniqueid: user.uniqueid
+      }
+    };
+    const authToken = jwt.sign(data, JWT_SECRET);
+    success = true;
+    res.json({ success, authToken, uniqueid: user.uniqueid });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 router.get('/getuser', fetchUser, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const user = await User.findById(userId).select("-password");
-        res.send(user);
-    } catch (error) {
-        console.error(error.message);
-        res.status(500).send("Internal Server Error");
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
+    res.json(user);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
 });
+  
 
+// Update User Data
 router.put('/updateuser', fetchUser, async (req, res) => {
-    try {
-        const userId = req.user.id;
-        let success = false;
-        const user = await User.findById(userId);
-        if (user) {
-            user.name = req.body.name;
-            user.contactnumber = req.body.contactnumber;
-            const salt = await bcrypt.genSalt(10);
-            const secPass = await bcrypt.hash(req.body.password, salt);
-            user.password = secPass;
-            await user.save();
-            success = true;
-            res.send({ success, user });
-        } else {
-            res.json({ success, error: "User not found" });
-        }
-    } catch (error) {
-        console.error(error.message);
-        res.status(500).send("Internal Server Error");
+  try {
+    const userId = req.user.id;
+    let success = false;
+    const user = await User.findById(userId);
+    if (user) {
+      user.name = req.body.name;
+      user.contactnumber = req.body.contactnumber;
+      const salt = await bcrypt.genSalt(10);
+      const secPass = await bcrypt.hash(req.body.password, salt);
+      user.password = secPass;
+      await user.save();
+      success = true;
+      res.send({ success, user });
+    } else {
+      res.json({ success, error: "User not found" });
     }
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
-router.post('/uploadphoto', fetchUser, upload.single('photo'), async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-        if (!req.file) {
-            return res.status(400).json({ error: "No file uploaded" });
-        }
-        // Read the file and convert it to binary data
-        const imageBuffer = req.file.buffer;
-        user.image = imageBuffer;
-        await user.save();
-        return res.json({ success: "Photo uploaded successfully" });
-    } catch (error) {
-        console.error(error.message);
-        return res.status(500).send("Internal Server Error");
+// Upload User Photo
+router.post('/uploadphoto', fetchUser, upload.single('image'), async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Remove old image file if it exists
+    if (user.image) {
+      fs.unlink(path.join('D:/onlineauctionsystem', user.image), (err) => {
+        if (err) console.error('Failed to delete old image:', err);
+      });
+    }
+
+    user.image = `/uploads/${req.file.filename}`; // Store the relative file path in the database
+    await user.save();
+
+    return res.json({ success: "Photo uploaded successfully", imageUrl: user.image });
+  } catch (error) {
+    console.error(error.message);
+    return res.status(500).send("Internal Server Error");
+  }
 });
-
-
+  
+// Increase Product Uploaded For Sale
 router.put('/user/increaseProductUploadForSale/:userId', async (req, res) => {
-    try {
-      const userId = req.params.userId;
-      // Find the user by userId and increment productUploadForSale field by 1
-      const updatedUser = await User.findOneAndUpdate(
-        { uniqueid: userId },
-        { $inc: { productUploadedForSale: 1 } },
-        { new: true } // Return the updated document
-      );
-  
-      if (!updatedUser) {
-        return res.status(404).json({ success: false, error: 'User not found' });
-      }
-  
-      res.json({ success: true, user: updatedUser });
-    } catch (error) {
-      console.error(error.message);
-      res.status(500).send('Internal Server Error');
+  try {
+    const userId = req.params.userId;
+    // Find the user by userId and increment productUploadedForSale field by 1
+    const updatedUser = await User.findOneAndUpdate(
+      { uniqueid: userId },
+      { $inc: { productUploadedForSale: 1 } },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, error: 'User not found' });
     }
-  });
-  
+
+    res.json({ success: true, user: updatedUser });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 module.exports = router;

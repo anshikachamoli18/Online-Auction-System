@@ -7,9 +7,9 @@ const UserSchema = new Schema({
     email: { type: String, required: true, unique: true },
     contactnumber: { type: Number, required: true, unique: true },
     password: { type: String, required: true },
-    image: { type: buffer },// Field to store the path to the image file
-    productUploadedForSale:{type: Number,default:0},
-    productBought:{type: Number,default:0},
+    image: { type: String }, // Add a field to store the image path
+    productUploadedForSale: { type: Number, default: 0 },
+    productBought: { type: Number, default: 0 },
     uniqueid: { type: Number, required: true },
     date: { type: Date, default: Date.now }
 });

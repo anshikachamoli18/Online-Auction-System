@@ -1,4 +1,4 @@
-const express = require('express');
+/*const express = require('express');
 const Product = require('../models/Product');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
@@ -67,7 +67,93 @@ router.post('/createproduct', [
         console.error(error.message);
         res.status(500).send("Internal Server Error");
     }
+});*/
+const express = require('express');
+const Product = require('../models/Product');
+const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const { body, validationResult } = require('express-validator');
+var jwt = require('jsonwebtoken');
+var fetchProduct = require('../middleware/fetchProduct');
+var fetchUser = require('../middleware/fetchUser');
+const nodemailer = require('nodemailer');
+const User = require('../models/User');
+
+
+const JWT_SECRET = "thisisavery";
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'D:/onlineauctionsystem/productImages');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Add unique timestamp to filename
+  }
 });
+
+const upload = multer({ storage: storage });
+
+// Ensure the 'uploads' directory exists and is accessible from the client
+const fs = require('fs');
+const uploadDir = path.join(__dirname, '..', 'productImages');
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+router.post('/createproduct', upload.single('image'), [
+  body('name', "Enter a valid name").isLength({ min: 2 }),
+  body('category').isLength({ min: 2 }),
+  body('description', "Enter valid description").isLength({ min: 2 }),
+  body('startingbidprice', "Enter a valid starting bid price").isNumeric(),
+  body('reserveprice', "Enter a valid reserve price").isNumeric(),
+  body('durationInMinutes', "Enter a valid duration").isNumeric(),
+  body('paymentmethods', "Enter a valid payment method").isLength({ min: 2 }),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    let success = false;
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success, errors: errors.array() });
+    }
+
+    let product = await Product.findOne({ description: req.body.description });
+
+    if (product) {
+      return res.status(400).json({ success, error: "Sorry, a product with this description already exists" });
+    }
+
+    const createdAt = new Date();
+    const durationInMinutes = parseInt(req.body.durationInMinutes);
+    const endDate = new Date(createdAt.getTime() + durationInMinutes * 60000); // Convert minutes to milliseconds
+
+    product = await Product.create({
+      name: req.body.name,
+      seller: req.body.seller,
+      category: req.body.category,
+      description: req.body.description,
+      startingbidprice: req.body.startingbidprice,
+      reserveprice: req.body.reserveprice,
+      currentbidprice: req.body.startingbidprice,
+      durationInMinutes: req.body.durationInMinutes,
+      paymentmethods: req.body.paymentmethods,
+      condition: req.body.condition,
+      status: req.body.status,
+      createdAt: createdAt,
+      endDate: endDate,
+      image: req.file ? req.file.filename : null
+    });
+
+    success = true;
+    res.json({ success, product });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 
 router.get('/product/:id', fetchProduct, async (req, res) => {
     try {
@@ -169,7 +255,7 @@ const checkExpiredAuctions = async () => {
         const expiredProducts = await Product.find({ status: 'expired', endDate: { $lt: currentTime } });
         
         if(expiredProducts.length === 0) {
-            console.log('No expired auctions found');
+            //console.log('No expired auctions found');
             return;
         }
         // Process each expired auction
@@ -214,12 +300,11 @@ const sendEmailToWinner = async (winner, product) => {
             from: 'anshikachamoli2004@gmail.com',
             to: user.email,
             subject: 'Congratulations! You have won the bid',
-            html: `
-                <p>Dear ${user.name},</p>
+            html: 
+                `<p>Dear ${user.name},</p>
                 <p>Congratulations! You have won the bid for the product "${product.name}".</p>
                 <p>Please proceed with the payment as specified by the seller to complete the purchase.</p>
-                <p>Best regards,<br/>Your Auction Platform</p>
-            `
+                <p>Best regards,<br/>Your Auction Platform</p>`
         };
 
         await transporter.sendMail(mailOptions);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
+import axios from 'axios';
 
 function Login(props) {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
@@ -19,17 +20,14 @@ function Login(props) {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ ...credentials, otp })
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
+        ...credentials,
+        otp
       });
 
-      const json = await response.json();
+      const json = response.data;
 
-      if (response.ok) {
+      if (response.status === 200) {
         localStorage.setItem('useruniqueid', json.uniqueid);
         login(json.authToken);
         navigate('/');
@@ -45,14 +43,12 @@ function Login(props) {
 
   const sendOtp = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/sendotp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: credentials.email }),
+      const response = await axios.post('http://localhost:5000/api/auth/sendotp', {
+        email: credentials.email
       });
-      const json = await response.json();
+
+      const json = response.data;
+
       if (json.success) {
         props.showAlert('OTP sent successfully', 'success');
         setOtpSent(true);
@@ -60,20 +56,20 @@ function Login(props) {
         props.showAlert(json.error, 'danger');
       }
     } catch (error) {
+      console.error('Error sending OTP:', error);
       props.showAlert('An error occurred while sending OTP. Please try again.', 'danger');
     }
   };
 
   const verifyOtp = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/verifyotp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: credentials.email, otp }),
+      const response = await axios.post('http://localhost:5000/api/auth/verifyotp', {
+        email: credentials.email,
+        otp
       });
-      const json = await response.json();
+
+      const json = response.data;
+
       if (json.success) {
         props.showAlert('OTP verified successfully', 'success');
         setOtpVerified(true);
@@ -81,6 +77,7 @@ function Login(props) {
         props.showAlert(json.error, 'danger');
       }
     } catch (error) {
+      console.error('Error verifying OTP:', error);
       props.showAlert('An error occurred while verifying OTP. Please try again.', 'danger');
     }
   };
@@ -90,56 +87,79 @@ function Login(props) {
   };
 
   return (
-    <div>
-      <div className="container" style={{ marginTop: '120px', width: '500px', background: 'lightblue', padding: '10px', borderRadius: '10px' }}>
-        <h2>Log in Account</h2>
-        <div className="container">
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label htmlFor="email" className="form-label">
-                Email address
+    <div className="flex items-center justify-center min-h-screen ">
+      <div className="container max-w-md bg-blue-100 p-8 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center mb-6">Log in Account</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="email" className="block text-gray-700">
+              Email address
+            </label>
+            <input
+              type="email"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+              id="email"
+              name="email"
+              value={credentials.email}
+              onChange={onChange}
+              minLength={5}
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-gray-700">
+              Password
+            </label>
+            <input
+              type="password"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+              id="password"
+              name="password"
+              value={credentials.password}
+              onChange={onChange}
+              minLength={5}
+              required
+            />
+          </div>
+          {otpSent && !otpVerified && (
+            <div>
+              <label htmlFor="otp" className="block text-gray-700">
+                Enter OTP
               </label>
               <input
-                type="email"
-                className="form-control"
-                id="email"
-                name="email"
-                aria-describedby="emailHelp"
-                value={credentials.email}
-                onChange={onChange}
-                minLength={5}
+                type="text"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring focus:border-blue-300"
+                id="otp"
+                name="otp"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
                 required
               />
+              <button
+                type="button"
+                className="mt-2 w-full py-2 px-4 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring focus:border-blue-300"
+                onClick={verifyOtp}
+              >
+                Verify OTP
+              </button>
             </div>
-            <div className="mb-3">
-              <label htmlFor="password" className="form-label">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                className="form-control"
-                id="password"
-                value={credentials.password}
-                onChange={onChange}
-                minLength={5}
-                required
-              />
-            </div>
-            {otpSent && !otpVerified && (
-              <div className="mb-3">
-                <label htmlFor="otp" className="form-label">Enter OTP</label>
-                <input type="text" className="form-control" id="otp" name="otp" value={otp} onChange={(e) => setOtp(e.target.value)} required />
-                <button type="button" className="btn btn-primary mt-2" onClick={verifyOtp}>Verify OTP</button>
-              </div>
-            )}
-            <button type="button" className="btn btn-primary" onClick={sendOtp} disabled={otpSent}>
-              {otpSent ? "OTP Sent" : "Send OTP"}
-            </button>
-            <br />
-            <button type="submit" className="btn btn-primary" disabled={!otpVerified} style={{ marginTop: "10px" }}>Submit</button>
-          </form>
-        </div>
+          )}
+          <button
+            type="button"
+            className={`w-full py-2 px-4 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring focus:border-blue-300 ${otpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
+            onClick={sendOtp}
+            disabled={otpSent}
+          >
+            {otpSent ? 'OTP Sent' : 'Send OTP'}
+          </button>
+          <button
+            type="submit"
+            className={`mt-4 w-full py-2 px-4 bg-green-500 text-white rounded-md shadow-md hover:bg-green-700 focus:outline-none focus:ring focus:border-green-300 ${!otpVerified ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={!otpVerified}
+          >
+            Submit
+          </button>
+        </form>
       </div>
     </div>
   );

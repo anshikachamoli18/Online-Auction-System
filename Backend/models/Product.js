@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const BidderSchema = new Schema({
-    userId: { type: Schema.Types.ObjectId, ref: 'user' }, // Assuming you have a User model
+    userId: { type: Schema.Types.ObjectId, ref: 'user' },
     bidAmount: { type: Number, required: true },
 });
 
@@ -17,6 +17,7 @@ const ProductSchema = new Schema({
     durationInMinutes: { type: Number, required: true },
     paymentmethods: { type: String, required: true },
     condition: { type: String, required: true },
+    image:{type:String,required:true},
     status: {
         type: String,
         enum: ['active', 'expired', 'completed'],
@@ -25,7 +26,7 @@ const ProductSchema = new Schema({
     createdAt: { type: Date, default: Date.now },
     endDate: { type: Date, required: true },
     bidders: [BidderSchema],
-    winners: [{ type: Schema.Types.ObjectId, ref: 'user' }], // Array of winner user IDs
+    winners: [{ type: Schema.Types.ObjectId, ref: 'user' }],
 });
 
 const Product = mongoose.model('Product', ProductSchema);
