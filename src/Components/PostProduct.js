@@ -147,7 +147,8 @@ function Postproduct(props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const seller = localStorage.getItem("uniqueid");
+    const seller = localStorage.getItem("id");
+    //console.log(seller);
 
     const formData = new FormData();
     formData.append('name', productCredentials.name);
@@ -170,9 +171,8 @@ function Postproduct(props) {
           'Content-Type': 'multipart/form-data'
         }
       });
-
+      
       const json = response.data;
-
       if (json.success) {
         props.showAlert("Product Added Successfully", "success");
         navigate("/profile", props);
@@ -181,6 +181,7 @@ function Postproduct(props) {
       }
     } catch (error) {
       console.error(error);
+      props.showAlert("An error occurred while adding the product. Kindly Login Again", "danger");
     }
   };
 

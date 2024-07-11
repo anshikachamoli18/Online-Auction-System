@@ -45,7 +45,7 @@ router.post('/sendotp', [
   });
 
   let mailOptions = {
-    from: 'anshikachamoli2004@gmail.com',
+    from: 'BidMaster Online Auction System',
     to: email,
     subject: 'Your OTP Code',
     text: `Your OTP code is ${otp}`

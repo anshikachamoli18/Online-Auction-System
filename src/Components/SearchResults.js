@@ -23,6 +23,11 @@ function SearchResults(props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {results.map((product) => (
           <div key={product._id} className="bg-white rounded-lg shadow-md">
+            <img
+                    src={`http://localhost:5000/productImages/${product.image}`}
+                    alt={product.name}
+                    className="w-full max-h-64 h-auto object-contain mb-4 rounded-lg"
+                />
             <div className="p-4">
               <h5 className="text-xl font-semibold mb-2">{product.name}</h5>
               <p className="text-sm text-gray-600 mb-2">Category: {product.category}</p>

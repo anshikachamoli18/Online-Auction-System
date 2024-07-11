@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
+import logo from './Icons/online-store.png';
 
 const NavBar = () => {
   const { isAuthenticated } = useAuth();
@@ -16,6 +17,7 @@ const NavBar = () => {
     <nav className={`fixed top-0 left-0 w-full ${navBarStyle} shadow-md z-50`}>
       <div className="container mx-auto flex justify-between items-center py-4 px-4 md:px-8">
         <Link className={navBrandStyle} to="/">
+          <img src={logo} alt="logo" className="w-10 h-10 inline-block mr-2" />
           Bidding System
         </Link>
         <button

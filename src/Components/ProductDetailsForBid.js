@@ -53,6 +53,13 @@ function ProductDetailsForBid(props) {
     <div className="container mx-auto my-auto mt-24 px-4 max-w-screen-md">
       <h2 className="text-2xl font-bold">Product Details</h2>
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        {product.image && (
+          <img
+            src={`http://localhost:5000/productImages/${product.image}`}
+            alt={product.name}
+            className="w-full max-h-64 h-auto object-contain mb-4 rounded-lg"
+          />
+        )}
         <p className="mb-4"><span className="font-bold">Name:</span> {product.name}</p>
         <p className="mb-4"><span className="font-bold">Description:</span> {product.description}</p>
         <p className="mb-4"><span className="font-bold">Starting Bid Price:</span> ${product.startingbidprice}</p>

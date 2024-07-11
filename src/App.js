@@ -18,6 +18,9 @@ import SearchResults from './Components/SearchResults';
 import LoginForPlacingBid from './Components/LoginForPlacingBid';
 import ProductDetailsForBid from './Components/ProductDetailsForBid';
 import Footer from './Components/Footer';
+import Shipment from './Components/Shipment-Product';
+import TransactionConfirmation from './Components/TransactionConfirmation';
+import background from './Components/Icons/background2.jpg';
 
 function App() {
   const [alert, setAlert] = useState(null);
@@ -29,8 +32,9 @@ function App() {
     });
     setTimeout(() => {
       setAlert(null);
-    }, 1500);
+    }, 10000);
   };
+  
 
   return (
     <>
@@ -38,7 +42,9 @@ function App() {
         <AuthProvider>
           <Navbar />
           <Alert alert={alert} />
-          <div className="min-h-screen flex flex-col font-times">
+          <div className="min-h-screen flex flex-col font-times" style={{
+            backgroundImage: `url(${background})`
+          }}>
             <Routes>
               <Route exact path="/" element={<Home showAlert={showAlert} />} />
               <Route exact path="/about" element={<About />} />
@@ -50,6 +56,8 @@ function App() {
               <Route exact path="/edituser" element={<EditUser showAlert={showAlert} />} />
               <Route exact path="/postproduct" element={<Postproduct showAlert={showAlert} />} />
               <Route exact path="/viewproduct" element={<UserProducts />} />
+              <Route exact path="/confirm-transaction/:productId/:buyerId" element={<TransactionConfirmation/>} />
+              <Route exact path="/confirm-shipment/:productId/:buyerId" element={<Shipment/>}/>
               <Route exact path="/search-results" element={<SearchResults showAlert={showAlert} />} />
               <Route exact path="/login-for-placing-bid" element={<LoginForPlacingBid showAlert={showAlert} />} />
               <Route exact path="/product-details-for-bid" element={<ProductDetailsForBid showAlert={showAlert} />} />

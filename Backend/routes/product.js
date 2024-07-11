@@ -1,73 +1,3 @@
-/*const express = require('express');
-const Product = require('../models/Product');
-const router = express.Router();
-const { body, validationResult } = require('express-validator');
-var jwt = require('jsonwebtoken');
-var fetchProduct = require('../middleware/fetchProduct');
-var fetchUser = require('../middleware/fetchUser');
-const User=require('../models/User');
-const nodemailer = require('nodemailer');
-
-const JWT_SECRET = "thisisavery";
-
-router.post('/createproduct', [
-    body('name', "Enter a valid name").isLength({ min: 2 }),
-    body('category').isLength({ min: 2 }),
-    body('description', "Enter valid description").isLength({ min: 2 }),
-    body('startingbidprice', "Enter a valid starting bid price").isNumeric(),
-    body('reserveprice', "Enter a valid reserve price").isNumeric(),
-    body('durationInMinutes', "Enter a valid duration").isNumeric(),
-    body('paymentmethods', "Enter a valid payment method").isLength({ min: 2 }),
-], async (req, res) => {
-    try {
-        const errors = validationResult(req);
-        let success = false;
-        
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success, errors: errors.array() });
-        }
-        
-        let product = await Product.findOne({ description: req.body.description });
-
-        if (product) {
-            return res.status(400).json({ success, error: "Sorry, a product with this description already exists" });
-        }
-
-        const createdAt = new Date();
-        const durationInMinutes = parseInt(req.body.durationInMinutes);
-        const endDate = new Date(createdAt.getTime() + durationInMinutes * 60000); // Convert minutes to milliseconds
-
-        product = await Product.create({
-            name: req.body.name,
-            seller: req.body.seller,
-            category: req.body.category,
-            description: req.body.description,
-            startingbidprice: req.body.startingbidprice,
-            reserveprice: req.body.reserveprice,
-            currentbidprice: req.body.startingbidprice,
-            durationInMinutes: req.body.durationInMinutes,
-            paymentmethods: req.body.paymentmethods,
-            condition: req.body.condition,
-            status: req.body.status,
-            createdAt,
-            endDate,
-            bidders: []
-        });
-
-        const data = {
-            product: {
-                id: product.id
-            }
-        };
-
-        const authToken = jwt.sign(data, process.env.JWT_SECRET || JWT_SECRET);
-        success = true;
-        res.json({ success, authToken });
-    } catch (error) {
-        console.error(error.message);
-        res.status(500).send("Internal Server Error");
-    }
-});*/
 const express = require('express');
 const Product = require('../models/Product');
 const router = express.Router();
@@ -79,6 +9,7 @@ var fetchProduct = require('../middleware/fetchProduct');
 var fetchUser = require('../middleware/fetchUser');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
+const axios = require('axios');
 
 
 const JWT_SECRET = "thisisavery";
@@ -145,8 +76,12 @@ router.post('/createproduct', upload.single('image'), [
       endDate: endDate,
       image: req.file ? req.file.filename : null
     });
-
     success = true;
+    console.log(req.body.seller);
+    const user=await User.findById(req.body.seller);
+    user.productUploadedForSale+=1;
+    await user.save();
+    //await User.findByIdAndUpdate(req.body.seller, { $inc: { productUploadedForSale: 1 } });
     res.json({ success, product });
   } catch (error) {
     console.error(error.message);
@@ -176,10 +111,10 @@ router.get('/products', async (req, res) => {
     }
 });
 
-router.get('/products/:uniqueid', async (req, res) => {
+router.get('/products/:id', async (req, res) => {
     try {
-        const { uniqueid } = req.params;
-        const products = await Product.find({ seller: uniqueid });
+        const { id } = req.params;
+        const products = await Product.find({ seller: id });
         res.json(products);
     } catch (error) {
         console.error(error.message);
@@ -241,7 +176,7 @@ router.post('/place-bid/:productId', fetchUser, async (req, res) => {
         // Update the current bid price to the highest bid amount
         product.currentbidprice = product.bidders[0].bidAmount;
         await product.save();
-
+        
         res.json({ success: true, message: 'Bid placed successfully' });
     } catch (error) {
         console.error('Error placing bid:', error);
@@ -252,26 +187,58 @@ router.post('/place-bid/:productId', fetchUser, async (req, res) => {
 const checkExpiredAuctions = async () => {
     try {
         const currentTime = new Date();
-        const expiredProducts = await Product.find({ status: 'expired', endDate: { $lt: currentTime } });
+        const expiredProducts = await Product.find({ status: 'expired'});
         
         if(expiredProducts.length === 0) {
             //console.log('No expired auctions found');
             return;
         }
         // Process each expired auction
+        console.log("Expired products",expiredProducts.length);
         for (let i = 0; i < expiredProducts.length; i++) {
             const product = expiredProducts[i];
-            const winningBidder = product.bidders[0]; // Assuming bidders array contains userId and bidAmount
-
-            // Send email to winning bidder
-            await sendEmailToWinner(winningBidder, product);
-            console.log("Email send successfully");
-            // Update product status to 'completed'
-            product.status = 'completed';
-            await product.save();
+            if(product.bidders.length>0&&product.status==='expired')
+            {
+                const winningBidder = product.bidders[0]; // Assuming bidders array contains userId and bidAmount
+                console.log(product._id);
+                await Product.findByIdAndUpdate(product._id, { $push : {winningBidder: winningBidder}, transactionStatus: 'pending',$set:{status: 'email sent to winner' } });
+                await product.save();
+                await sendEmailToWinner(winningBidder, product);
+                //await Product.findByIdAndUpdate(product._id, { $set:{status: 'email sent to winner' }});
+                //await product.save();
+                console.log("Email send successfully");
+                await updateInventory(product, winningBidder.userId, product.seller);
+            }
         }
     } catch (error) {
         console.error('Error checking expired auctions:', error);
+    }
+};
+
+//function to increase the number of product bought by user
+const updateInventory = async (product, buyerId, sellerId) => {
+    try {
+        console.log("buyer id",buyerId);
+        console.log("seller id",sellerId);
+        const buyer = await User.findById(buyerId);
+        const seller = await User.findById(sellerId);
+
+        if (!buyer || !seller) {
+            console.error('Buyer or Seller not found');
+            return;
+        }
+
+        /*// Add product to buyer's inventory and increment product count
+        buyer.boughtProducts.push(product);
+        buyer.productBought += 1;*/
+        await User.findByIdAndUpdate(buyerId, { $push: { boughtProducts: product }, $inc: { productBought: 1 } });
+        await buyer.save();
+
+        // Optional: Update seller's stats, if needed
+
+        console.log('Inventory updated successfully');
+    } catch (error) {
+        console.error('Error updating inventory:', error);
     }
 };
 
@@ -296,17 +263,30 @@ const sendEmailToWinner = async (winner, product) => {
             }
         });
 
+        console.log("product seller",product.seller);
+        const seller=await User.findById(product.seller);
+
         const mailOptions = {
-            from: 'anshikachamoli2004@gmail.com',
+            from: 'BidMaster Online Auction System',
             to: user.email,
             subject: 'Congratulations! You have won the bid',
             html: 
-                `<p>Dear ${user.name},</p>
-                <p>Congratulations! You have won the bid for the product "${product.name}".</p>
-                <p>Please proceed with the payment as specified by the seller to complete the purchase.</p>
-                <p>Best regards,<br/>Your Auction Platform</p>`
-        };
-
+                `
+      <h3>Congratulations! You've won the auction for ${product.name}!</h3>
+      <p>Please contact the seller to arrange payment and shipping:</p>
+      <p><strong>Seller's Email:</strong> ${seller.email}</p>
+      <p><strong>Seller's Phone:</strong> ${seller.contactnumber}</p>
+      <p><strong>Payment Details:</strong></p>
+      <ul>
+        <li><strong>UPI ID:</strong> anshikachamoli@oksbi</li>
+        <li><strong>Bank Name:</strong> PNB</li>
+        <li><strong>Account Number:</strong>84787 </li>
+        <li><strong>Account Name:</strong>Anshika Chamoli </li>
+        <li><strong>IFSC Code:</strong>342211 </li>
+      </ul>
+      <p><a href="http://localhost:3000/confirm-transaction/${product._id}/${user._id}">Click here</a> to confirm the transaction and submit your shipping details.</p>
+    `
+};
         await transporter.sendMail(mailOptions);
         return;
     } catch (error) {
@@ -316,5 +296,142 @@ const sendEmailToWinner = async (winner, product) => {
 
 setInterval(checkExpiredAuctions, 60000); 
 
+//const dataupload=multer();
+let otps={};
+
+const Proofstorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'D:/onlineauctionsystem/ProofImages');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // Add unique timestamp to filename
+  }
+});
+
+const Proofupload = multer({ storage: Proofstorage });
+
+// Ensure the 'uploads' directory exists and is accessible from the client
+//const fs = require('fs');
+const uploadDirProof = path.join(__dirname, '..', 'ProofImages');
+
+if (!fs.existsSync(uploadDirProof)) {
+  fs.mkdirSync(uploadDirProof, { recursive: true });
+}
+
+router.post('/confirmTransaction/:productId',Proofupload.single('proofOfPayment'),async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const buyerId=req.body.buyerId;
+      const {addressLine1,addressLine2,city,state,country,zipcode}=req.body;
+      //const proofOfPayment=req.body.proofOfPayment;
+
+      //console.log(productId,buyerId,addressLine1,addressLine2,city,state,country,zipcode,proofOfPayment);
   
+      // Validate buyerId, address, and proofOfPayment as needed
+  
+      const product = await Product.findById(productId);
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+  
+      // Update product details with buyer info and mark transaction as confirmed
+      product.transactionDetails.buyerId = buyerId;
+      product.transactionDetails.address.addressLine1 = addressLine1;
+      product.transactionDetails.address.addressLine2 = addressLine2;
+      product.transactionDetails.address.city=city;
+      product.transactionDetails.address.state=state;
+      product.transactionDetails.address.country=country;
+      product.transactionDetails.address.zipCode=zipcode;
+      product.transactionDetails.proofOfPayment = req.file?req.file.filename:null;
+      product.transactionStatus = 'confirmed';
+  
+      await product.save();
+
+      const seller=await User.findById(product.seller);
+      const buyer=await User.findById(buyerId);
+      console.log(seller.email);
+
+      const otp=Math.floor(1000 + Math.random() * 9000);
+      otps[productId]=otp;
+      console.log(otp);
+
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'anshikachamoli2004@gmail.com',
+            pass: 'ulot jvqp xdoo lqti'
+        }
+    });
+
+    const mailOptions = {
+      from: 'anshikachamoli2004@gmail.com',
+      to: seller.email,
+      subject: 'Shipment Address Confirmation',
+      html: `
+          <p>Dear Seller,</p>
+          <p>The buyer has confirmed the transaction for product <strong>${product.name}</strong>.</p>
+          <p>Shipping Address:</p>
+          <p>
+              ${product.transactionDetails.address.addressLine1}<br>
+              ${product.transactionDetails.address.addressLine2 ? product.transactionDetails.address.addressLine2 + '<br>' : ''}
+              ${product.transactionDetails.address.city}, ${product.transactionDetails.address.state} ${product.transactionDetails.address.zipCode}<br>
+              ${product.transactionDetails.address.country}
+          </p>
+          <p>Please proceed with shipment.</p>
+          <p>Regards,<br>Online Auction System</p>
+          <p><a href="http://localhost:3000/confirm-shipment/${product._id}/${buyer._id}">Click here</a> to confirm the shipment.
+          Ask the otp from buyer.</p>
+      `
+  };
+
+    const mailOptionsBuyer={
+      from: 'anshikachamoli2004@gmail.com',
+      to: buyer.email,
+      subject:'OTP for shipment confirmation',
+      text:`Dear Buyer your otp for shipment confirmation is ${otp}.\nThank you,\nOnline Auction System`
+    }
+    await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptionsBuyer);
+    res.json({ success: true, message: 'Transaction confirmed successfully' });
+    } catch (error) {
+      console.error('Error confirming transaction:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+  // Endpoint to update shipment status
+  router.post('/updateShipment/:productId', async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const { otp } = req.body;
+
+      //console.log("hello");
+      //console.log(productId);
+  
+      // Validate buyerId and otp as needed
+      const product = await Product.findById(productId);
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
+      console.log(otps[productId]);
+  
+      if (otp !== otps[productId]) {
+        return res.status(400).json({ error: 'Invalid OTP' });
+      }
+  
+      // Update shipment status and mark transaction as completed
+      product.shipmentStatus = 'shipped';
+      product.transactionStatus = 'completed';
+      delete otps[productId];
+      await product.save();
+  
+      res.json({ success: true, message: 'Shipment updated successfully' });
+    } catch (error) {
+      console.error('Error updating shipment status:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+
 module.exports = router;

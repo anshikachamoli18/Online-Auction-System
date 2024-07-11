@@ -7,9 +7,9 @@ function UserProducts() {
 
     useEffect(() => {
         async function fetchProducts() {
-            const uniqueid = localStorage.getItem("uniqueid");
+            const id = localStorage.getItem("id");
             try {
-                const response = await axios.get(`http://localhost:5000/api/product/products/${uniqueid}`);
+                const response = await axios.get(`http://localhost:5000/api/product/products/${id}`);
                 setProducts(response.data);
             } catch (error) {
                 console.error(error);
@@ -50,12 +50,12 @@ function UserProducts() {
                         className={`p-4 rounded-lg shadow-md border ${product.status === 'active' ? 'bg-pink-200' : 'bg-gray-200'} flex flex-col justify-between hover:shadow-lg transition-shadow duration-200`}
                     >
                         {product.image && (
-                            <img
-                                src={`http://localhost:5000/productImages/${product.image}`}
-                                alt={product.name}
-                                className="h-48 w-full object-cover mb-4 rounded-lg"
-                            />
-                        )}
+                    <img
+                    src={`http://localhost:5000/productImages/${product.image}`}
+                    alt={product.name}
+                    className="w-full max-h-64 h-auto object-contain mb-4 rounded-lg"
+                />
+                )}
                         <div className="product-details flex-1 mb-4">
                             <h2 className="text-lg font-semibold mb-2">{product.name}</h2>
                             <p className="text-sm text-gray-700 mb-1">Category: {product.category}</p>

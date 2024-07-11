@@ -87,17 +87,18 @@ const Profile = (props) => {
   };
 
   const handlePostProduct = () => {
-    localStorage.setItem("uniqueid", userData.uniqueid);
+    //console.log(userData._id);
+    localStorage.setItem("id", userData._id);
     navigate("/postproduct");
   };
 
   const handleViewProduct = () => {
-    localStorage.setItem("uniqueid", userData.uniqueid);
+    localStorage.setItem("id", userData._id);
     navigate("/viewproduct");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-300 to-blue-500">
+    <div className="min-h-screen flex items-center justify-center ">
       <div className="bg-white rounded-lg p-8 shadow-lg w-full md:w-4/5 lg:w-3/5 xl:w-2/5">
         <h1 className="text-3xl font-semibold text-black text-center mb-4">DASHBOARD</h1>
         <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-x-4">

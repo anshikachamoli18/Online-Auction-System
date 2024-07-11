@@ -11,7 +11,8 @@ const UserSchema = new Schema({
     productUploadedForSale: { type: Number, default: 0 },
     productBought: { type: Number, default: 0 },
     uniqueid: { type: Number, required: true },
-    date: { type: Date, default: Date.now }
+    date: { type: Date, default: Date.now },
+    boughtProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }] 
 });
 
 const User = mongoose.model('user', UserSchema);
