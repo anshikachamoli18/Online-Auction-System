@@ -7,13 +7,11 @@ export const AuthProvider = ({ children }) => {
   const [authToken, setAuthToken]=useState(null);
 
   const login = (token) => {
-    // Perform login logic (e.g., authenticate user with backend)
     setIsAuthenticated(true);
     setAuthToken(token);
   };
 
   const logout = () => {
-    // Perform logout logic (e.g., clear authentication token)
     setIsAuthenticated(false);
     setAuthToken(null);
   };

@@ -19,7 +19,7 @@ const Shipment = () => {
     console.log(`${pair[0]}: ${pair[1]}`);
   }
     try {
-      const response = await axios.post(`http://localhost:5000/api/product/updateShipment/${productId}`, formdata,
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/product/updateShipment/${productId}`, formdata,
         {
             headers:{
                 'Content-Type':'multipart/form-data'

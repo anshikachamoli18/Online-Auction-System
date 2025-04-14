@@ -47,7 +47,7 @@ function Register(props) {
     const uniqueid = Math.floor(Math.random() * 1000000000);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/createuser', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/createuser`, {
         name,
         email,
         contactnumber,
@@ -87,7 +87,7 @@ function Register(props) {
 
   const sendOtp = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/sendotp', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/sendotp`, {
         email: credentials.email,
       });
 
@@ -108,7 +108,7 @@ function Register(props) {
 
   const verifyOtp = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/verifyotp', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/verifyotp`, {
         email: credentials.email,
         otp
       });

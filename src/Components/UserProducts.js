@@ -9,7 +9,7 @@ function UserProducts() {
         async function fetchProducts() {
             const id = localStorage.getItem("id");
             try {
-                const response = await axios.get(`http://localhost:5000/api/product/products/${id}`);
+                const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/product/products/${id}`);
                 setProducts(response.data);
             } catch (error) {
                 console.error(error);
@@ -51,10 +51,10 @@ function UserProducts() {
                     >
                         {product.image && (
                     <img
-                    src={`http://localhost:5000/productImages/${product.image}`}
+                    src={`${process.env.REACT_APP_API_URL}/uploads/products/${product.image}`}
                     alt={product.name}
                     className="w-full max-h-64 h-auto object-contain mb-4 rounded-lg"
-                />
+                   />
                 )}
                         <div className="product-details flex-1 mb-4">
                             <h2 className="text-lg font-semibold mb-2">{product.name}</h2>

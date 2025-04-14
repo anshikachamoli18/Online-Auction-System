@@ -15,7 +15,6 @@ import { AuthProvider } from './Context/AuthContext';
 import Postproduct from './Components/PostProduct';
 import UserProducts from './Components/UserProducts';
 import SearchResults from './Components/SearchResults';
-import LoginForPlacingBid from './Components/LoginForPlacingBid';
 import ProductDetailsForBid from './Components/ProductDetailsForBid';
 import Footer from './Components/Footer';
 import Shipment from './Components/Shipment-Product';
@@ -32,7 +31,7 @@ function App() {
     });
     setTimeout(() => {
       setAlert(null);
-    }, 10000);
+    }, 2000);
   };
   
 
@@ -59,7 +58,6 @@ function App() {
               <Route exact path="/confirm-transaction/:productId/:buyerId" element={<TransactionConfirmation/>} />
               <Route exact path="/confirm-shipment/:productId/:buyerId" element={<Shipment/>}/>
               <Route exact path="/search-results" element={<SearchResults showAlert={showAlert} />} />
-              <Route exact path="/login-for-placing-bid" element={<LoginForPlacingBid showAlert={showAlert} />} />
               <Route exact path="/product-details-for-bid" element={<ProductDetailsForBid showAlert={showAlert} />} />
             </Routes>
             <Footer />

@@ -10,28 +10,33 @@ var fetchUser = require('../middleware/fetchUser');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const axios = require('axios');
+const fs = require('fs');
+
+require("dotenv").config();
 
 
-const JWT_SECRET = "thisisavery";
+const JWT_SECRET = process.env.JWT_SECRET||"thisisavery";
 
+// Define upload path
+const UPLOAD_PATH = path.join(__dirname, '../uploads/products');
+
+// Ensure the folder exists
+if (!fs.existsSync(UPLOAD_PATH)) {
+  fs.mkdirSync(UPLOAD_PATH, { recursive: true });
+}
+
+// Set up Multer storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'D:/onlineauctionsystem/productImages');
+    cb(null, UPLOAD_PATH);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); // Add unique timestamp to filename
+    cb(null, Date.now() + path.extname(file.originalname));
   }
 });
 
 const upload = multer({ storage: storage });
 
-// Ensure the 'uploads' directory exists and is accessible from the client
-const fs = require('fs');
-const uploadDir = path.join(__dirname, '..', 'productImages');
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
 
 router.post('/createproduct', upload.single('image'), [
   body('name', "Enter a valid name").isLength({ min: 2 }),
@@ -256,15 +261,17 @@ const sendEmailToWinner = async (winner, product) => {
         console.log("sending mail");
         // Implement logic to send email to the winning bidder
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            service:process.env.SERVICE,
             auth: {
-                user: 'anshikachamoli2004@gmail.com',
-                pass: 'ulot jvqp xdoo lqti'
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
             }
         });
 
         console.log("product seller",product.seller);
         const seller=await User.findById(product.seller);
+
+        const URL=process.env.FRONTEND_URL||"http://localhost:3000"
 
         const mailOptions = {
             from: 'BidMaster Online Auction System',
@@ -284,7 +291,7 @@ const sendEmailToWinner = async (winner, product) => {
         <li><strong>Account Name:</strong>Anshika Chamoli </li>
         <li><strong>IFSC Code:</strong>342211 </li>
       </ul>
-      <p><a href="http://localhost:3000/confirm-transaction/${product._id}/${user._id}">Click here</a> to confirm the transaction and submit your shipping details.</p>
+      <p><a href="${URL}/confirm-transaction/${product._id}/${user._id}">Click here</a> to confirm the transaction and submit your shipping details.</p>
     `
 };
         await transporter.sendMail(mailOptions);
@@ -298,25 +305,25 @@ setInterval(checkExpiredAuctions, 60000);
 
 //const dataupload=multer();
 let otps={};
+const PROOF_UPLOAD_PATH = path.join(__dirname,  '../uploads/proofs');
+
 
 const Proofstorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'D:/onlineauctionsystem/ProofImages');
+    cb(null, PROOF_UPLOAD_PATH);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname)); // Add unique timestamp to filename
+    cb(null, Date.now() + path.extname(file.originalname));
   }
 });
 
 const Proofupload = multer({ storage: Proofstorage });
 
-// Ensure the 'uploads' directory exists and is accessible from the client
-//const fs = require('fs');
-const uploadDirProof = path.join(__dirname, '..', 'ProofImages');
-
-if (!fs.existsSync(uploadDirProof)) {
-  fs.mkdirSync(uploadDirProof, { recursive: true });
+// Ensure directory exists
+if (!fs.existsSync(PROOF_UPLOAD_PATH)) {
+  fs.mkdirSync(PROOF_UPLOAD_PATH, { recursive: true });
 }
+
 
 router.post('/confirmTransaction/:productId',Proofupload.single('proofOfPayment'),async (req, res) => {
     try {
@@ -356,12 +363,14 @@ router.post('/confirmTransaction/:productId',Proofupload.single('proofOfPayment'
       console.log(otp);
 
       const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: process.env.SERVICE,
         auth: {
-            user: 'anshikachamoli2004@gmail.com',
-            pass: 'ulot jvqp xdoo lqti'
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
         }
     });
+
+    const URL=process.env.FRONTEND_URL||"http://localhost:3000"
 
     const mailOptions = {
       from: 'anshikachamoli2004@gmail.com',
@@ -379,7 +388,7 @@ router.post('/confirmTransaction/:productId',Proofupload.single('proofOfPayment'
           </p>
           <p>Please proceed with shipment.</p>
           <p>Regards,<br>Online Auction System</p>
-          <p><a href="http://localhost:3000/confirm-shipment/${product._id}/${buyer._id}">Click here</a> to confirm the shipment.
+          <p><a href="${URL}/confirm-shipment/${product._id}/${buyer._id}">Click here</a> to confirm the shipment.
           Ask the otp from buyer.</p>
       `
   };

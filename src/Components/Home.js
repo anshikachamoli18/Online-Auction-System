@@ -14,7 +14,9 @@ function Home(props) {
 
   useEffect(() => {
     setLoading(true);
-    axios.get("http://localhost:5000/api/product/upcoming")
+    console.log(process.env.REACT_APP_API_URL);
+
+    axios.get(`${process.env.REACT_APP_API_URL}/api/product/upcoming`)
       .then(response => {
         const activeProducts = response.data.filter(product => product.status === "active");
         const updatedProducts = activeProducts.map(product => {
@@ -40,7 +42,7 @@ function Home(props) {
     }
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:5000/api/product/search/${category}/${searchTerm}`);
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/product/search/${category}/${searchTerm}`);
       const searchResults = response.data;
       if (!searchResults || searchResults.length === 0) {
         props.showAlert("No results found", "message");
@@ -103,7 +105,7 @@ function Home(props) {
                 <div key={product._id} className="flex flex-col justify-between card border border-gray-300 rounded-lg p-4 shadow-md bg-white">
                   {product.image && (
                     <img
-                      src={`http://localhost:5000/productImages/${product.image}`}
+                      src={`${process.env.REACT_APP_API_URL}/uploads/products/${product.image}`}
                       alt={product.name}
                       className="w-full h-full object-cover mb-4 rounded-lg"
                     />

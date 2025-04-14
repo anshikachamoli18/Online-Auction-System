@@ -26,7 +26,7 @@ function EditUser(props) {
 
     try {
       const response = await axios.put(
-        "http://localhost:5000/api/auth/updateuser",
+        `${process.env.REACT_APP_API_URL}/api/auth/updateuser`,
         { name, contactnumber, password },
         {
           headers: {

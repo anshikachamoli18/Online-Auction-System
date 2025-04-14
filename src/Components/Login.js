@@ -20,7 +20,7 @@ function Login(props) {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/login`, {
         ...credentials,
         otp
       });
@@ -28,7 +28,8 @@ function Login(props) {
       const json = response.data;
 
       if (response.status === 200) {
-        localStorage.setItem('useruniqueid', json.uniqueid);
+        console.log("JSON id", json.id);
+        localStorage.setItem('id', json.id);
         login(json.authToken);
         navigate('/');
         props.showAlert('Logged in Successfully', 'success');
@@ -43,7 +44,7 @@ function Login(props) {
 
   const sendOtp = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/sendotp', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/sendotp`, {
         email: credentials.email
       });
 
@@ -63,7 +64,7 @@ function Login(props) {
 
   const verifyOtp = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/verifyotp', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/verifyotp`, {
         email: credentials.email,
         otp
       });

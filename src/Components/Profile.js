@@ -27,7 +27,7 @@ const Profile = (props) => {
       }
 
       try {
-        const response = await axios.get("http://localhost:5000/api/auth/getuser", {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/auth/getuser`, {
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
@@ -53,7 +53,7 @@ const Profile = (props) => {
     formData.append("image", selectedPhoto);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/uploadphoto", formData, {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/uploadphoto`, formData, {
         headers: {
           Authorization: `Bearer ${authToken}`,
           "Content-Type": "multipart/form-data",
@@ -77,6 +77,8 @@ const Profile = (props) => {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("id");
+    localStorage.clear(); 
     logout();
     navigate("/login");
     props.showAlert("Logged out successfully", "success");
@@ -89,11 +91,13 @@ const Profile = (props) => {
   const handlePostProduct = () => {
     //console.log(userData._id);
     localStorage.setItem("id", userData._id);
+    //localStorage.setItem("useruniqueid", userData.uniqueid);
     navigate("/postproduct");
   };
 
   const handleViewProduct = () => {
     localStorage.setItem("id", userData._id);
+    //localStorage.setItem("useruniqueid", userData.uniqueid);
     navigate("/viewproduct");
   };
 
@@ -104,7 +108,7 @@ const Profile = (props) => {
         <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-x-4">
           <div className="md:mr-8 flex-shrink-0">
             <img
-              src={userData.image ? `http://localhost:5000${userData.image}` : defaultPhoto}
+              src={userData.image ? `${process.env.REACT_APP_API_URL}/uploads/userImages/${userData.image}` : defaultPhoto}
               alt="Profile"
               className="w-48 h-48 rounded-full object-cover"
               onError={(e) => {

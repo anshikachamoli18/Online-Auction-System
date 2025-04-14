@@ -10,20 +10,27 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
 
-// Multer setup for disk storage
+const UPLOAD_PATH = path.join(__dirname, '../uploads/userImages');
+
+// Ensure the folder exists
+if (!fs.existsSync(UPLOAD_PATH)) {
+  fs.mkdirSync(UPLOAD_PATH, { recursive: true });
+}
+
+// Set up Multer storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'D:/onlineauctionsystem/uploads'); // Ensure path is absolute
+  destination: function (req, file, cb) {
+    cb(null, UPLOAD_PATH);
   },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
 });
 
 const upload = multer({ storage: storage });
 
-const JWT_SECRET = 'thisisavery';
-const OTP_SECRET = 'some_random_secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'thisisavery';
+const OTP_SECRET = process.env.OTP_SECRET || 'some_random_secret';
 
 let otps = {}; // In-memory store for OTPs, replace with a proper store in production
 
@@ -35,12 +42,11 @@ router.post('/sendotp', [
   const otp = Math.floor(100000 + Math.random() * 900000); // Generate a 6-digit OTP
   otps[email] = otp; // Store OTP in memory
 
-  // Send OTP via email using nodemailer
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'anshikachamoli2004@gmail.com',
-      pass: 'ulot jvqp xdoo lqti'
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
     }
   });
 
@@ -142,12 +148,11 @@ router.post('/login', [
     const data = {
       user: {
         id: user.id,
-        uniqueid: user.uniqueid
       }
     };
     const authToken = jwt.sign(data, JWT_SECRET);
     success = true;
-    res.json({ success, authToken, uniqueid: user.uniqueid });
+    res.json({ success, authToken, id: user.id });
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Internal Server Error");
@@ -178,9 +183,10 @@ router.put('/updateuser', fetchUser, async (req, res) => {
     if (user) {
       user.name = req.body.name;
       user.contactnumber = req.body.contactnumber;
-      const salt = await bcrypt.genSalt(10);
-      const secPass = await bcrypt.hash(req.body.password, salt);
-      user.password = secPass;
+      if (req.body.password) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(req.body.password, salt);
+      }      
       await user.save();
       success = true;
       res.send({ success, user });
@@ -207,12 +213,12 @@ router.post('/uploadphoto', fetchUser, upload.single('image'), async (req, res) 
 
     // Remove old image file if it exists
     if (user.image) {
-      fs.unlink(path.join('D:/onlineauctionsystem', user.image), (err) => {
+      fs.unlink(path.join(__dirname, '..', user.image), (err) => {
         if (err) console.error('Failed to delete old image:', err);
       });
     }
 
-    user.image = `/uploads/${req.file.filename}`; // Store the relative file path in the database
+    user.image = `${req.file.filename}`; // Store the relative file path in the database
     await user.save();
 
     return res.json({ success: "Photo uploaded successfully", imageUrl: user.image });

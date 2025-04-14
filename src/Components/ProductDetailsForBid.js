@@ -11,9 +11,11 @@ function ProductDetailsForBid(props) {
   const navigate = useNavigate();
 
   const handlePlaceBid = async () => {
-    const uniqueid = localStorage.getItem("useruniqueid");
+    const id = localStorage.getItem("id");
 
-    if (parseInt(product.seller) === parseInt(uniqueid)) {
+    console.log("Seller ID:", product.seller, "Logged in User ID:", id);
+
+    if (product.seller === id) {
       props.showAlert("You cannot place a bid on your own product", "danger");
       return;
     }
@@ -25,7 +27,7 @@ function ProductDetailsForBid(props) {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/product/place-bid/${product._id}`,
+        `${process.env.REACT_APP_API_URL}/api/product/place-bid/${product._id}`,
         {
           bidAmount,
         },
@@ -55,7 +57,7 @@ function ProductDetailsForBid(props) {
       <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         {product.image && (
           <img
-            src={`http://localhost:5000/productImages/${product.image}`}
+            src={`${process.env.REACT_APP_API_URL}/uploads/products/${product.image}`}
             alt={product.name}
             className="w-full max-h-64 h-auto object-contain mb-4 rounded-lg"
           />

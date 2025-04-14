@@ -8,7 +8,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.6.8",
     "concurrently": "^8.2.2",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.5.0",
     "express": "^4.19.2",
     "mongoose": "^8.3.2",
     "multer": "^1.4.5-lts.1",
@@ -25,7 +25,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "both": "concurrently \"npm run start\" \"nodemon Backend/index.js\""
+    "client": "react-scripts start",
+    "server": "npm --prefix Backend run dev",
+    "both": "concurrently \"npm run server\" \"npm run client\""
   },
   "eslintConfig": {
     "extends": [

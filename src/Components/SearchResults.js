@@ -24,7 +24,7 @@ function SearchResults(props) {
         {results.map((product) => (
           <div key={product._id} className="bg-white rounded-lg shadow-md">
             <img
-                    src={`http://localhost:5000/productImages/${product.image}`}
+                    src={`${process.env.REACT_APP_API_URL}/uploads/products/${product.image}`}
                     alt={product.name}
                     className="w-full max-h-64 h-auto object-contain mb-4 rounded-lg"
                 />

@@ -166,7 +166,7 @@ function Postproduct(props) {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/product/createproduct', formData, {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/product/createproduct`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

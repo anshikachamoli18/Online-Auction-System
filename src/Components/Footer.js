@@ -24,7 +24,7 @@ function Footer() {
         <div className="text-left mx-auto my-auto">
           <h4 className="text-lg font-bold mb-2">Follow Us</h4>
           <ul className="space-y-2 space-x-3">
-            <Link to="//" target="_blank" rel="noreferrer" className="text-blue-300 hover:text-blue-400"><img src={facebook} alt="Facebook" className="inline-block w-6 h-6" /></Link>
+            <Link to="/" target="_blank" rel="noreferrer" className="text-blue-300 hover:text-blue-400"><img src={facebook} alt="Facebook" className="inline-block w-6 h-6" /></Link>
             <Link to="https://www.instagram.com/anshika_chamoli_18" target="_blank" rel="noreferrer" className="text-blue-300 hover:text-blue-400"><img src={instagram} alt="Instagram" className="inline-block w-6 h-6" /></Link>
             <Link to="//" target="_blank" rel="noreferrer" className="text-blue-300 hover:text-blue-400"><img src={youtube} alt="YouTube" className="inline-block w-6 h-6" /></Link></ul>
         </div>
