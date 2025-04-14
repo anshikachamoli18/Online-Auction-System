@@ -37,10 +37,20 @@ folders.forEach(folder => {
 scheduleProductsUpdate();
 
 // Middleware
+// List allowed origins (make sure it's the correct frontend URL)
+const allowedOrigins = ['https://online-auction-system-virid.vercel.app']; // Frontend URL
+
 app.use(cors({
-  origin: ["http://localhost:3000", "https://your-frontend-domain.com"],
-  credentials: true,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Important if you're dealing with cookies or sessions
 }));
+
 app.use(express.json());
 
 // Serve static image folders
